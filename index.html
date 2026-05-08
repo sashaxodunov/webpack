@@ -1,11 +1,120 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <script src="./dist/main.js"></script>
-  </body>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>requestAnimationFrame: pause/resume + reset</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 20px; }
+    .stage {
+      width: 640px; height: 160px;
+      border: 2px solid #222; border-radius: 12px;
+      position: relative; overflow: hidden;
+      background: linear-gradient(90deg, #f7f7f7, #ffffff);
+    }
+    .ball {
+      width: 46px; height: 46px; border-radius: 50%;
+      position: absolute; left: 0; top: 57px;
+      background: radial-gradient(circle at 30% 30%, #fff, #ff3b3b 60%, #b30000);
+      box-shadow: 0 10px 20px rgba(0,0,0,.15);
+    }
+    .controls { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #222; background: #fff; cursor: pointer; }
+    button:active { transform: translateY(1px); }
+    .status { opacity: .8; }
+    code { background: #f2f2f2; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Анимация на <code>requestAnimationFrame</code></h1>
+
+  <div class="stage" id="stage">
+    <div class="ball" id="ball" aria-label="ball"></div>
+  </div>
+
+  <div class="controls">
+    <button id="toggleBtn">Старт</button>
+    <button id="resetBtn">Reset</button>
+    <span class="status" id="status">Готово</span>
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const ball  = document.getElementById('ball');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const resetBtn  = document.getElementById('resetBtn');
+    const statusEl  = document.getElementById('status');
+
+    // Параметры "мира"
+    let x = 0;            // позиция шарика (px)
+    let v = 260;          // скорость (px/сек)
+    let rafId = null;     // id кадра
+    let running = false;  // играет/пауза
+    let lastT = null;     // last timestamp
+
+    function setBallPosition(px) {
+      ball.style.transform = `translateX(${px}px)`;
+    }
+
+    function resetState() {
+      x = 0;
+      v = 260;
+      lastT = null;
+      setBallPosition(0);
+      statusEl.textContent = 'Сброшено (готово)';
+    }
+
+    function step(t) {
+      if (!running) return; // на всякий случай
+
+      if (lastT == null) lastT = t;
+      const dt = (t - lastT) / 1000; // секунды
+      lastT = t;
+
+      const maxX = stage.clientWidth - ball.clientWidth;
+
+      x += v * dt;
+
+      // Отскок от краёв
+      if (x > maxX) { x = maxX; v *= -1; }
+      if (x < 0)    { x = 0;    v *= -1; }
+
+      setBallPosition(x);
+
+      rafId = requestAnimationFrame(step);
+    }
+
+    function start() {
+      if (running) return;
+      running = true;
+      statusEl.textContent = 'Идёт анимация';
+      toggleBtn.textContent = 'Пауза';
+      rafId = requestAnimationFrame(step);
+    }
+
+    function pause() {
+      if (!running) return;
+      running = false;
+      statusEl.textContent = 'Пауза';
+      toggleBtn.textContent = 'Продолжить';
+      if (rafId != null) cancelAnimationFrame(rafId);
+      rafId = null;
+      lastT = null; // чтобы после паузы dt не был огромным
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      running ? pause() : start();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      // reset возвращает в первоначальное состояние, а также ставит на паузу
+      pause();
+      toggleBtn.textContent = 'Старт';
+      resetState();
+    });
+
+    // Инициализация
+    resetState();
+  </script>
+</body>
 </html>
