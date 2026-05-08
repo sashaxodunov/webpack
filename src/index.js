@@ -1,5 +1,4 @@
-import { one } from "./one";
-import { two } from "./two";
+import timer from "./module/timer";
 
-one();
-two();
+timer("10 may 2026");
+
