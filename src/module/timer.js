@@ -6,6 +6,7 @@ const timer = (deadline) => {
   const getTimeRemaining = () => {
     let dateStop = new Date(deadline).getTime();
     let dateNow = new Date().getTime();
+
     let timeRemaining = (dateStop - dateNow) / 1000;
     let hours = Math.floor(timeRemaining / 60 / 60);
     let minutes = Math.floor((timeRemaining / 60) % 60);
@@ -14,17 +15,28 @@ const timer = (deadline) => {
     return { timeRemaining, hours, minutes, seconds};
   }
 
-  const updateClock = () => {
-    let getTime = getTimeRemaining()
-    timerHours.textContent = getTime.hours;
-    timerMinutes.textContent = getTime.minutes;
-    timerSeconds.textContent = getTime.seconds;
+  let intervalId;
 
-    if (getTime.timeRemaining > 0) {
-      setTimeout(updateClock, 1000);
+  const updateClock = () => {
+    // console.log('tick'); // должно печататься 1 раз в 1000ms
+
+    const t = getTimeRemaining();
+
+    if (t.timeRemaining <= 0) {
+      timerHours.textContent = 0;
+      timerMinutes.textContent = 0;
+      timerSeconds.textContent = 0;
+      clearInterval(intervalId);
+      return;
     }
-  }
-  updateClock()
+
+    timerHours.textContent = t.hours;
+    timerMinutes.textContent = t.minutes;
+    timerSeconds.textContent = t.seconds;
+  };
+
+  updateClock(); // первый вызов сразу, без ожидания 1 секунды
+  intervalId = setInterval(updateClock, 1000);
  }
 
  export default timer;
