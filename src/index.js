@@ -1,5 +1,10 @@
-import { one } from "./one";
-import { two } from "./two";
+import timer from "./module/timer";
+import menu from "./module/menu";
+import modal from "./module/modal";
+import anime from "./module/anime"
 
-one();
-two();
+timer("20 may 2026");
+menu()
+modal()
+anime()
+
